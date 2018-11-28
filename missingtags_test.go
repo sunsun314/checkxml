@@ -6,6 +6,37 @@ import (
 	"testing"
 )
 
+func TestMissingXMLTagx(t *testing.T) {
+
+	data := []byte(`
+		<doc>
+			<ok>true</ok>
+			<why attr="some val"  name="you namne">
+			</why>
+			<not>I dont't know</not>
+		</doc>`)
+
+	type test2 struct {
+		Maybenot []string `xml:"maybenot,omitempty"`
+		Attr     string   `xml:"attr,attr"`
+		Name     string   `xml:"name,attr"`
+	}
+	type test struct {
+		Yup bool  `xml:"ok"`
+		Why test2 `xml:"why"`
+	}
+
+	tv := test{}
+	mems, _, err := MissingXMLTags(data, tv)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(mems) > 0 {
+		t.Fatalf(fmt.Sprintf("len(mems) == %d >> %v", len(mems), mems))
+	}
+}
+
 func TestMissingXMLTags(t *testing.T) {
 	// fmt.Println("===================== TestMissingXMLTags ...")
 
@@ -29,7 +60,7 @@ func TestMissingXMLTags(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	results := make(map[string]bool,0)
+	results := make(map[string]bool, 0)
 	for _, v := range mems {
 		results[v] = true
 		if _, ok := check[v]; !ok {
@@ -49,7 +80,7 @@ func TestMissingXMLTags(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	results = make(map[string]bool,0)
+	results = make(map[string]bool, 0)
 	for _, v := range mems {
 		results[v] = true
 		if _, ok := check[v]; !ok {
@@ -107,7 +138,7 @@ func TestMissingXMLTagsReader(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	results := make(map[string]bool,0)
+	results := make(map[string]bool, 0)
 	for _, v := range mems {
 		results[v] = true
 		if _, ok := check[v]; !ok {
@@ -267,6 +298,38 @@ func TestMissingXMLTagsSkipMems(t *testing.T) {
 	defer SetMembersToIgnore()
 
 	mems, _, err := MissingXMLTags(data, tv)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	if len(mems) != 0 {
+		t.Fatalf(fmt.Sprintf("missing mems: %d - %#v", len(mems), mems))
+	}
+}
+
+func TestMissingXMLTagsRecursive(t *testing.T) {
+
+	type test2 struct {
+		Name string   `xml:"name,attr"`
+		May  []*test2 `xml:"child,omitempty"`
+	}
+	type test struct {
+		May []*test2 `xml:"child"`
+	}
+
+	tv := test{}
+	data := []byte(`
+    <doc>
+		<child name="xx">
+           <child name="yy">
+             <child name="zz">
+             </child>
+           </child>
+           <child name="yz"/>
+        </child>
+	</doc>`)
+
+	mems, _, err := MissingXMLTags(data, tv)
+	fmt.Println(mems)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

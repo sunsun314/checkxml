@@ -249,7 +249,9 @@ func checkMembers(mv interface{}, val reflect.Value, s *[]string, cmem string) {
 		// 2.1. Check members of XML list array.
 		//      This forces all of them to be regular and w/o typos in key labels.
 		for _, sl := range slice {
-			checkMembers(sl, sval, s, cmem)
+			if nil != sl {
+				checkMembers(sl, sval, s, cmem)
+			}
 		}
 		return // done with reflect.Slice value
 	}
@@ -265,7 +267,7 @@ func checkMembers(mv interface{}, val reflect.Value, s *[]string, cmem string) {
 		return
 	}
 	// 3c. NOTE: Don't coerce keys to lower case.
-	//     XML decoder requires that XML tag matches 
+	//     XML decoder requires that XML tag matches
 	//     struct member name (or tag) exactly.
 	mkeys := make(map[string]interface{}, len(mm))
 	for k, v := range mm {
