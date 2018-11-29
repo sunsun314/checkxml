@@ -387,9 +387,17 @@ func checkMembers(mv interface{}, val reflect.Value, s *[]string, cmem string) {
 			}
 		}
 		if len(cmem) > 0 {
-			checkMembers(v, field.val, s, cmem+"."+fn)
+			if nil == v && field.omitempty {
+				continue
+			} else {
+				checkMembers(v, field.val, s, cmem+"."+fn)
+			}
 		} else {
-			checkMembers(v, field.val, s, fn)
+			if nil == v && field.omitempty {
+				continue
+			} else {
+				checkMembers(v, field.val, s, fn)
+			}
 		}
 	next:
 	}
